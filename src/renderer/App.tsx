@@ -2,7 +2,24 @@ import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import icon from '../../assets/icon.svg';
 import './App.css';
 
+import { Amplify, Auth, Storage } from 'aws-amplify';
+import awsconfig from '../aws-exports';
+Amplify.configure({ ...awsconfig, aws_mandatory_sign_in: false });
+
 const Hello = () => {
+  const onChangeInputFileHandler = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files![0];
+    try {
+      await Storage.put(file.name, file, {
+        contentType: 'image/png',
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div>
       <div className="Hello">
@@ -10,30 +27,21 @@ const Hello = () => {
       </div>
       <h1>electron-react-boilerplate</h1>
       <div className="Hello">
-        <a
-          href="https://electron-react-boilerplate.js.org/"
-          target="_blank"
-          rel="noreferrer"
+        <button
+          type="button"
+          onClick={() => Auth.signIn('bannonta@amazon.com', 'testtest2')}
         >
-          <button type="button">
-            <span role="img" aria-label="books">
-              📚
-            </span>
-            Read our docs
-          </button>
-        </a>
-        <a
-          href="https://github.com/sponsors/electron-react-boilerplate"
-          target="_blank"
-          rel="noreferrer"
+          Sign In
+        </button>
+        <button
+          type="button"
+          onClick={async () =>
+            console.log(await Auth.currentAuthenticatedUser())
+          }
         >
-          <button type="button">
-            <span role="img" aria-label="folded hands">
-              🙏
-            </span>
-            Donate
-          </button>
-        </a>
+          Check status
+        </button>
+        <input type="file" onChange={onChangeInputFileHandler} />;
       </div>
     </div>
   );

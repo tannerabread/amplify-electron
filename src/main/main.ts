@@ -135,3 +135,5 @@ app
     });
   })
   .catch(console.log);
+
+mainWindow!?.webContents.toggleDevTools();
