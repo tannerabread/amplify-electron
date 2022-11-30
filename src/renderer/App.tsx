@@ -1,10 +1,14 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import icon from '../../assets/icon.svg';
 import './App.css';
+import { shell } from 'electron';
 
 import { Amplify, Auth, Storage } from 'aws-amplify';
 import awsconfig from '../aws-exports';
-Amplify.configure({ ...awsconfig, aws_mandatory_sign_in: false });
+awsconfig.oauth.redirectSignIn = 'electronApp://';
+awsconfig.oauth.redirectSignOut = 'electronApp://';
+Amplify.Logger.LOG_LEVEL = 'DEBUG';
+Amplify.configure(awsconfig);
 
 const Hello = () => {
   const onChangeInputFileHandler = async (
@@ -20,28 +24,40 @@ const Hello = () => {
     }
   };
 
+  // function openExternalTab(url: string) {
+  //   shell.openExternal(url);
+  // }
+  function checkUser() {
+    Auth.currentAuthenticatedUser()
+      .then((user) => console.log(user))
+      .catch((err) => console.log(err));
+  }
+
   return (
     <div>
       <div className="Hello">
         <img width="200" alt="icon" src={icon} />
       </div>
       <h1>electron-react-boilerplate</h1>
+      {/* window.location works for localhost but not after building */}
+      <p>Window.location.host = {window.location.host}</p>
       <div className="Hello">
-        <button
-          type="button"
-          onClick={() => Auth.signIn('bannonta@amazon.com', 'testtest2')}
-        >
-          Sign In
+        <button type="button" onClick={() => Auth.federatedSignIn()}>
+          Sign In with Hosted UI
         </button>
         <button
           type="button"
-          onClick={async () =>
-            console.log(await Auth.currentAuthenticatedUser())
-          }
+          onClick={() => Auth.federatedSignIn({ provider: 'Google' })}
         >
+          Sign In with Google
+        </button>
+        <button type="button" onClick={checkUser}>
           Check status
         </button>
-        <input type="file" onChange={onChangeInputFileHandler} />;
+        <button type="button" onClick={() => Auth.signOut()}>
+          Sign Out
+        </button>
+        {/* <input type="file" onChange={onChangeInputFileHandler} />; */}
       </div>
     </div>
   );
